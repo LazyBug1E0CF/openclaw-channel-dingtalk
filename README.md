@@ -675,7 +675,7 @@ MediaFile; // 下载的媒体文件
 sendBySession(config, sessionWebhook, text, options); // 通过会话发送
 
 // AI 互动卡片
-createAICard(config, conversationId, data, log); // 创建并投放 AI 卡片
+createAICard(config, conversationId, log); // 创建并投放 AI 卡片
 streamAICard(card, content, finished, log); // 流式更新卡片内容
 finishAICard(card, content, log); // 完成并关闭卡片
 
@@ -701,7 +701,7 @@ import {
 } from './src/channel';
 
 // 创建 AI 卡片
-const card = await createAICard(config, conversationId, messageData, log);
+const card = await createAICard(config, conversationId, log);
 
 // 流式更新内容
 for (const chunk of aiResponseChunks) {
