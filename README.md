@@ -622,8 +622,24 @@ await dingtalkPlugin.outbound.sendMedia({
 
 ### 连接失败
 
-1. 检查 clientId 和 clientSecret 是否正确
-2. 确认网络可以访问钉钉 API
+初始化阶段如果只看到 HTTP `400`，它通常不等于“单纯网络不通”；更常见的是钉钉已收到请求，但拒绝了请求内容或当前应用状态不满足要求。
+
+建议先运行仓库内的最小连接检查脚本，确认 `POST /v1.0/gateway/connections/open` 是否成功：
+
+- macOS / Linux: `bash scripts/dingtalk-connection-check.sh --config ~/.openclaw/openclaw.json`
+- Windows PowerShell: `pwsh -File scripts/dingtalk-connection-check.ps1 -Config ~/.openclaw/openclaw.json`
+  - 旧版 Windows 可使用：`powershell.exe -File scripts/dingtalk-connection-check.ps1 -Config $env:USERPROFILE\.openclaw\openclaw.json`
+
+完整排障流程：
+- 英文版：[docs/connection-troubleshooting.md](docs/connection-troubleshooting.md)
+- 中文版：[docs/connection-troubleshooting.zh-CN.md](docs/connection-troubleshooting.zh-CN.md)
+
+如果新日志里出现 `connect.open` 或 `connect.websocket`，也可以直接按文档中的阶段说明来判断：前者优先查钉钉应用配置，后者优先查 WSS / 代理 / 企业网关。
+
+关键设置清单（钉钉后台）
+- 应用为企业内部应用/机器人，且已“发布”版本（不是草稿）
+- 版本管理 → 已发布 → 版本详情：可见范围需为“全员员工”
+- 已开启“机器人能力”，消息接收方式为“Stream 模式”
 
 ### 错误 payload 日志规范（`[ErrorPayload]`）
 
