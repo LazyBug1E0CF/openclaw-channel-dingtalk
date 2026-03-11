@@ -719,6 +719,77 @@ describe('inbound-handler', () => {
         );
     });
 
+    it('reads /learn session notes from accountStorePath so they can be injected on the next turn', async () => {
+        const runtime = buildRuntime();
+        runtime.channel.session.resolveStorePath = vi
+            .fn()
+            .mockReturnValueOnce('/tmp/agent-store.json')
+            .mockReturnValueOnce('/tmp/account-store.json')
+            .mockReturnValueOnce('/tmp/agent-store.json')
+            .mockReturnValueOnce('/tmp/account-store.json');
+        shared.getRuntimeMock.mockReturnValue(runtime);
+        shared.extractMessageContentMock
+            .mockReturnValueOnce({
+                text: '/learn session 回复当前私聊时，先说这是 session 规则。',
+                messageType: 'text',
+            })
+            .mockReturnValueOnce({
+                text: '测试一下当前私聊规则',
+                messageType: 'text',
+            });
+
+        await handleDingTalkMessage({
+            cfg: { commands: { ownerAllowFrom: ['dingtalk:owner-test-id'] } },
+            accountId: 'main',
+            sessionWebhook: 'https://session.webhook',
+            log: undefined,
+            dingtalkConfig: { dmPolicy: 'open' } as any,
+            data: {
+                msgId: 'm_session_apply',
+                msgtype: 'text',
+                text: { content: '/learn session 回复当前私聊时，先说这是 session 规则。' },
+                conversationType: '1',
+                conversationId: 'cid_dm_owner',
+                senderId: 'owner-test-id',
+                chatbotUserId: 'bot_1',
+                sessionWebhook: 'https://session.webhook',
+                createAt: Date.now(),
+            },
+        } as any);
+
+        runtime.channel.reply.finalizeInboundContext.mockClear();
+
+        await handleDingTalkMessage({
+            cfg: {},
+            accountId: 'main',
+            sessionWebhook: 'https://session.webhook',
+            log: undefined,
+            dingtalkConfig: {
+                dmPolicy: 'open',
+                messageType: 'markdown',
+                showThinking: false,
+                learningEnabled: true,
+            } as any,
+            data: {
+                msgId: 'm_session_context',
+                msgtype: 'text',
+                text: { content: '测试一下当前私聊规则' },
+                conversationType: '1',
+                conversationId: 'cid_dm_owner',
+                senderId: 'user_1',
+                chatbotUserId: 'bot_1',
+                sessionWebhook: 'https://session.webhook',
+                createAt: Date.now(),
+            },
+        } as any);
+
+        expect(runtime.channel.reply.finalizeInboundContext).toHaveBeenCalledWith(
+            expect.objectContaining({
+                GroupSystemPrompt: expect.stringContaining('回复当前私聊时，先说这是 session 规则。'),
+            }),
+        );
+    });
+
     it('handleDingTalkMessage sends group deny message when groupPolicy allowlist blocks group', async () => {
         await handleDingTalkMessage({
             cfg: {},

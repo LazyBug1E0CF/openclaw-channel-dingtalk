@@ -449,7 +449,7 @@ export async function handleDingTalkMessage(params: HandleDingTalkMessageParams)
     }
     if (parsedLearnCommand.scope === "session" && parsedLearnCommand.instruction) {
       applyManualSessionLearningNote({
-        storePath,
+        storePath: accountStorePath,
         accountId,
         targetId: data.conversationId,
         instruction: parsedLearnCommand.instruction,

@@ -82,8 +82,11 @@ export function parseLearnCommand(text: string | undefined): ParsedLearnCommand 
     return { scope: "session", instruction: raw.slice("/learn session ".length).trim() };
   }
   if (normalized.startsWith("/learn here ")) {
-    const payload = splitDelimitedPayload(raw.slice("/learn here ".length));
-    return payload ? { scope: "here", instruction: payload.body } : { scope: "unknown" };
+    const rawInstruction = raw.slice("/learn here ".length).trim();
+    const instruction = rawInstruction.startsWith(TARGET_DELIMITER)
+      ? rawInstruction.slice(TARGET_DELIMITER.length).trim()
+      : rawInstruction;
+    return instruction ? { scope: "here", instruction } : { scope: "unknown" };
   }
   if (normalized.startsWith("/learn target-set create ")) {
     const payload = splitDelimitedPayload(raw.slice("/learn target-set create ".length));
