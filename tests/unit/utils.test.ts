@@ -130,6 +130,31 @@ describe('utils', () => {
             expect(result).toEqual({ address: '1.2.3.4', family: 4 });
             expect(resolve4).not.toHaveBeenCalled();
         });
+
+        it('returns lookup-address array for IP literals when options.all is true', async () => {
+            const dnsImpl = {
+                lookup: vi.fn(),
+                resolve4: vi.fn(),
+            };
+            const lookup = createResolve4FallbackLookupWithDeps(undefined, undefined, dnsImpl as any, { isIP: () => 4 });
+
+            const result = await new Promise<{ address: { address: string; family: number }[]; family: number }>((resolve, reject) => {
+                lookup('1.2.3.4', { all: true }, (err, address, family) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve({ address: address as { address: string; family: number }[], family: family ?? 0 });
+                });
+            });
+
+            expect(result).toEqual({
+                address: [{ address: '1.2.3.4', family: 4 }],
+                family: 4,
+            });
+            expect(dnsImpl.lookup).not.toHaveBeenCalled();
+            expect(dnsImpl.resolve4).not.toHaveBeenCalled();
+        });
     });
 
     describe('retryWithBackoff', () => {

@@ -10,7 +10,7 @@ import { ConnectionState } from '../../src/types';
  */
 function createMockClient(overrides?: Record<string, any>) {
     const socket = new EventEmitter();
-    (socket as any).readyState = 1;
+    (socket as any).readyState = 0;
     (socket as any).removeListener = socket.removeListener.bind(socket);
     (socket as any).ping = vi.fn();
 

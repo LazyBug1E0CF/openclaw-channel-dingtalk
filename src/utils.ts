@@ -138,6 +138,8 @@ type LookupCallback = (
   family?: number,
 ) => void;
 
+type LookupOptions = dns.LookupOneOptions | dns.LookupAllOptions;
+
 export function createResolve4FallbackLookup(log?: Logger, accountId?: string) {
   return createResolve4FallbackLookupWithDeps(log, accountId, dns, net);
 }
@@ -150,9 +152,14 @@ export function createResolve4FallbackLookupWithDeps(
 ) {
   let fallbackLogged = false;
 
-  return (hostname: string, options: dns.LookupOneOptions, callback: LookupCallback): void => {
+  return (hostname: string, options: LookupOptions, callback: LookupCallback): void => {
     const ipFamily = netImpl.isIP(hostname);
     if (ipFamily !== 0) {
+      if (options.all) {
+        callback(null, [{ address: hostname, family: ipFamily }], ipFamily);
+        return;
+      }
+
       callback(null, hostname, ipFamily);
       return;
     }
